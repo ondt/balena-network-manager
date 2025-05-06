@@ -9,6 +9,8 @@ use device::{get_active_connection_devices, Device};
 use ssid::{AsSsidSlice, Ssid};
 use wifi::{AccessPoint, AccessPointCredentials};
 
+const WIFI_TIMEOUT: u64 = 240;
+
 #[derive(Clone)]
 pub struct Connection {
     dbus_manager: Rc<DBusNetworkManager>,
@@ -56,7 +58,7 @@ impl Connection {
             ConnectionState::Activating => wait(
                 self,
                 &ConnectionState::Activated,
-                self.dbus_manager.method_timeout(),
+                WIFI_TIMEOUT,
             ),
             ConnectionState::Unknown => bail!(ErrorKind::NetworkManager(
                 "Unable to get connection state".into()
@@ -67,7 +69,7 @@ impl Connection {
                 wait(
                     self,
                     &ConnectionState::Activated,
-                    self.dbus_manager.method_timeout(),
+                    WIFI_TIMEOUT,
                 )
             }
         }
@@ -82,7 +84,7 @@ impl Connection {
             ConnectionState::Deactivating => wait(
                 self,
                 &ConnectionState::Deactivated,
-                self.dbus_manager.method_timeout(),
+                WIFI_TIMEOUT,
             ),
             ConnectionState::Unknown => bail!(ErrorKind::NetworkManager(
                 "Unable to get connection state".into()
@@ -97,7 +99,7 @@ impl Connection {
                     wait(
                         self,
                         &ConnectionState::Deactivated,
-                        self.dbus_manager.method_timeout(),
+                        WIFI_TIMEOUT,
                     )
                 } else {
                     Ok(ConnectionState::Deactivated)
@@ -236,11 +238,12 @@ pub fn connect_to_access_point(
     let state = wait(
         &connection,
         &ConnectionState::Activated,
-        dbus_manager.method_timeout(),
+        WIFI_TIMEOUT,
     )?;
 
     Ok((connection, state))
 }
+
 
 pub fn create_hotspot<S>(
     dbus_manager: &Rc<DBusNetworkManager>,
@@ -260,7 +263,7 @@ where
     let state = wait(
         &connection,
         &ConnectionState::Activated,
-        dbus_manager.method_timeout(),
+        WIFI_TIMEOUT,
     )?;
 
     Ok((connection, state))
